@@ -14,16 +14,19 @@ document.addEventListener("DOMContentLoaded", () => {
       this.classList.add("active");
 
       const text = this.textContent.trim();
-      document.querySelector(".topbar-title").textContent = text;
+      const titleEl = document.querySelector(".topbar-title");
+      if (titleEl) titleEl.textContent = text;
     });
   });
 
   // --------------------
-  // TASK TOGGLE (NO INLINE JS)
+  // TASK TOGGLE
   // --------------------
   document.querySelectorAll(".task-item").forEach(item => {
     const check = item.querySelector(".task-check");
     const text = item.querySelector(".task-text");
+
+    if (!check || !text) return;
 
     check.addEventListener("click", () => {
       check.classList.toggle("done");
@@ -98,7 +101,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = {};
 
     document.querySelectorAll(".k-col").forEach(col => {
-      const stage = col.querySelector(".k-col-title").textContent;
+      const titleEl = col.querySelector(".k-col-title");
+      if (!titleEl) return;
+
+      const stage = titleEl.textContent.trim();
       data[stage] = [];
 
       col.querySelectorAll(".k-card").forEach(card => {
@@ -117,7 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!data) return;
 
     document.querySelectorAll(".k-col").forEach(col => {
-      const stage = col.querySelector(".k-col-title").textContent;
+      const titleEl = col.querySelector(".k-col-title");
+      if (!titleEl) return;
+
+      const stage = titleEl.textContent.trim();
 
       col.querySelectorAll(".k-card").forEach(c => c.remove());
 
@@ -133,27 +142,31 @@ document.addEventListener("DOMContentLoaded", () => {
   // --------------------
   // ADD NEW CANDIDATE
   // --------------------
-  document.querySelector(".topbar-btn")?.addEventListener("click", () => {
-    const name = prompt("Candidate name:");
-    const role = prompt("Role:");
+  const addBtn = document.querySelector(".topbar-btn");
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      const name = prompt("Candidate name:");
+      const role = prompt("Role:");
 
-    if (!name || !role) return;
+      if (!name || !role) return;
 
-    const firstCol = document.querySelector(".k-col");
+      const firstCol = document.querySelector(".k-col");
+      if (!firstCol) return;
 
-    const card = document.createElement("div");
-    card.className = "k-card";
-    card.innerHTML = `
-      <div class="k-card-name">${name}</div>
-      <div class="k-card-role">${role}</div>
-    `;
+      const card = document.createElement("div");
+      card.className = "k-card";
+      card.innerHTML = `
+        <div class="k-card-name">${name}</div>
+        <div class="k-card-role">${role}</div>
+      `;
 
-    firstCol.appendChild(card);
+      firstCol.appendChild(card);
 
-    attachDrag();
-    updateCounts();
-    saveState();
-  });
+      attachDrag();
+      updateCounts();
+      saveState();
+    });
+  }
 
   // --------------------
   // INIT
