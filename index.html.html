@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HireFlow — ATS Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0d14;
+      --surface: #13131f;
+      --surface2: #1a1a2b;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.13);
+      --purple: #7c5cfc;
+      --purple-light: #a388ff;
+      --purple-dim: rgba(124,92,252,0.15);
+      --purple-glow: rgba(124,92,252,0.3);
+      --text: #f0eeff;
+      --muted: #8880aa;
+      --muted2: #5a5578;
+      --green: #22c97e;
+      --amber: #f5a623;
+      --red: #f0526a;
+      --blue: #4da6ff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      height: 100vh;
+    }
+    .sidebar-logo {
+      padding: 22px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: var(--purple);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 16px; height: 16px; }
+    .logo-text { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+    .logo-text span { color: var(--purple-light); }
+
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .nav-group-label {
+      font-size: 10px; color: var(--muted2);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 14px 20px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px;
+      font-size: 13px; color: var(--muted);
+      cursor: pointer; text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .nav-item.active {
+      background: var(--purple-dim);
+      color: var(--purple-light);
+      border-left-color: var(--purple);
+      padding-left: 18px;
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--purple);
+      color: #fff;
+      font-size: 10px; font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 18px; text-align: center;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), #a06af7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+    }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--text); }
+    .user-role { font-size: 11px; color: var(--muted2); }
+
+    /* ── Main ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .topbar {
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .topbar-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; color: var(--text); }
+    .topbar-breadcrumb { font-size: 12px; color: var(--muted); margin-left: 4px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .topbar-btn {
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 7px 14px;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      display: flex; align-items: center; gap: 6px;
+      transition: background 0.15s;
+    }
+    .topbar-btn:hover { background: #6a4ae0; }
+    .icon-btn {
+      width: 32px; height: 32px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted);
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--border2); background: rgba(255,255,255,0.06); }
+    .icon-btn svg { width: 15px; height: 15px; }
+
+    .notif-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--purple);
+      position: absolute; top: 4px; right: 4px;
+    }
+
+    /* ── Content ── */
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--purple);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; color: var(--text); }
+    .stat-delta { font-size: 11px; margin-top: 5px; }
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+    .stat-icon {
+      position: absolute; top: 14px; right: 16px;
+      width: 32px; height: 32px;
+      background: var(--purple-dim);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--purple-light);
+    }
+    .stat-icon svg { width: 15px; height: 15px; }
+
+    /* ── Two-col layout ── */
+    .two-col { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+
+    /* ── Kanban pipeline ── */
+    .pipeline-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); }
+    .view-all { font-size: 11px; color: var(--purple-light); cursor: pointer; text-decoration: none; }
+
+    .kanban { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .kanban::-webkit-scrollbar { height: 4px; }
+    .kanban::-webkit-scrollbar-track { background: var(--surface2); border-radius: 2px; }
+    .kanban::-webkit-scrollbar-thumb { background: var(--purple-dim); border-radius: 2px; }
+
+    .k-col {
+      min-width: 180px;
+      max-width: 180px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      flex-shrink: 0;
+    }
+    .k-col-header {
+      display: flex; align-items: center; gap: 7px;
+      margin-bottom: 12px;
+    }
+    .k-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .k-col-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; flex: 1; }
+    .k-count {
+      font-size: 10px; font-weight: 600;
+      background: var(--surface2);
+      color: var(--muted);
+      padding: 1px 6px; border-radius: 8px;
+    }
+
+    .k-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      cursor: grab;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .k-card:hover { border-color: var(--purple); transform: translateY(-1px); }
+    .k-card-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .k-card-role { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .k-card-foot { display: flex; align-items: center; justify-content: space-between; }
+    .k-avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 600; color: #fff;
+      flex-shrink: 0;
+    }
+    .k-stars { display: flex; gap: 2px; }
+    .k-star { width: 8px; height: 8px; }
+    .k-tag {
+      font-size: 9px; font-weight: 600;
+      padding: 2px 6px; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    /* ── Right panel ── */
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .panel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .panel-card-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+
+    /* Tasks */
+    .task-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .task-check {
+      width: 15px; height: 15px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border2);
+      flex-shrink: 0;
+      margin-top: 1px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .task-check.done { background: var(--purple); border-color: var(--purple); }
+    .task-text { font-size: 12px; color: var(--text); flex: 1; line-height: 1.4; }
+    .task-text.done { color: var(--muted2); text-decoration: line-through; }
+    .task-due { font-size: 10px; color: var(--muted2); white-space: nowrap; }
+
+    /* Activity */
+    .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; }
+    .activity-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+    .act-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      margin-top: 4px; flex-shrink: 0;
+    }
+    .act-text { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
+    .act-text strong { color: var(--text); font-weight: 500; }
+    .act-time { font-size: 10px; color: var(--muted2); white-space: nowrap; }
+
+    /* Open positions table */
+    .positions-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .positions-table { width: 100%; border-collapse: collapse; }
+    .positions-table th {
+      font-size: 10px; color: var(--muted2);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      padding: 0 0 10px;
+      text-align: left; font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .positions-table td {
+      padding: 11px 0;
+      font-size: 12px; color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .positions-table tr:last-child td { border-bottom: none; }
+    .pos-title { font-weight: 500; }
+    .pos-dept { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .status-pill {
+      font-size: 10px; font-weight: 600; padding: 3px 9px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em;
+      display: inline-block;
+    }
+    .pill-green { background: rgba(34,201,126,0.12); color: var(--green); }
+    .pill-amber { background: rgba(245,166,35,0.12); color: var(--amber); }
+    .pill-purple { background: var(--purple-dim); color: var(--purple-light); }
+    .applicant-avatars { display: flex; }
+    .applicant-avatars .k-avatar { margin-left: -6px; border: 1.5px solid var(--surface); }
+    .applicant-avatars .k-avatar:first-child { margin-left: 0; }
+    .pos-more { font-size: 10px; color: var(--muted); margin-left: 4px; align-self: center; }
+
+    /* Progress bar */
+    .prog-bg { height: 4px; background: var(--surface2); border-radius: 3px; overflow: hidden; width: 70px; }
+    .prog-fill { height: 4px; background: var(--purple); border-radius: 3px; }
+
+    /* Search bar */
+    .search-wrap {
+      position: relative;
+      margin-left: 8px;
+    }
+    .search-wrap svg {
+      position: absolute; left: 9px; top: 50%;
+      transform: translateY(-50%);
+      width: 13px; height: 13px; color: var(--muted2);
+      pointer-events: none;
+    }
+    .search-input {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 7px;
+      padding: 6px 10px 6px 28px;
+      font-size: 12px; color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      width: 180px;
+      outline: none;
+    }
+    .search-input::placeholder { color: var(--muted2); }
+    .search-input:focus { border-color: var(--purple); }
+
+    /* Scrollbar */
+    .content::-webkit-scrollbar { width: 5px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2C5.8 2 4 3.8 4 6c0 1.5.8 2.8 2 3.5V11h4V9.5C11.2 8.8 12 7.5 12 6c0-2.2-1.8-4-4-4z" fill="white"/><rect x="5.5" y="11" width="5" height="1.5" rx="0.75" fill="white"/><rect x="6" y="12.5" width="4" height="1.5" rx="0.75" fill="white"/></svg>
+    </div>
+    <span class="logo-text">hire<span>flow</span></span>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Recruit</div>
+    <a class="nav-item active" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6M5 5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Positions
+      <span class="nav-badge">12</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1 13c0-2.8 2.2-5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M11 8v1l.7.7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Candidates
+      <span class="nav-badge">48</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1.5"/><path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" stroke="currentColor" stroke-width="1.5"/><path d="M6 8l1.5 1.5L10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Pipeline
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M9 11.5h5M11.5 9v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Advertise
+    </a>
+
+    <div class="nav-group-label">Manage</div>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 14v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+      Team
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2L8 10 2 5V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 5v8h12V5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      Inbox
+      <span class="nav-badge">5</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 12L5 8l3 2 3-5 3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Reports
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Settings
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-avatar">JD</div>
+    <div>
+      <div class="user-name">Jamie Doe</div>
+      <div class="user-role">Hiring Manager</div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">Dashboard</span>
+    <span class="topbar-breadcrumb">/ Overview</span>
+    <div class="search-wrap">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input class="search-input" type="text" placeholder="Search candidates…"/>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn" style="position:relative;">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2a5 5 0 015 5v1l1.5 2.5H1.5L3 8V7a5 5 0 015-5z" stroke="currentColor" stroke-width="1.4"/><path d="M6 13a2 2 0 004 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="icon-btn">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <button class="topbar-btn">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        New Position
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Open Positions</div>
+        <div class="stat-value">12</div>
+        <div class="stat-delta up">↑ 3 this week</div>
+        <div class="stat-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6M5 5h4M5 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Applicants</div>
+        <div class="stat-value">284</div>
+        <div class="stat-delta up">↑ 22 this week</div>
+        <div class="stat-icon"><svg viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12.5" cy="5" r="1.8" stroke="currentColor" stroke-width="1.5"/><path d="M14.5 13c0-1.5-.8-2.8-2-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interviews Scheduled</div>
+        <div class="stat-value">17</div>
+        <div class="stat-delta up">↑ 5 this week</div>
+        <div class="stat-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v2M11 2v2M2 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. Time to Hire</div>
+        <div class="stat-value">18d</div>
+        <div class="stat-delta down">↓ 2d from last mo</div>
+        <div class="stat-icon"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+
+    <!-- Two-col -->
+    <div class="two-col">
+      <div>
+        <!-- Pipeline Kanban -->
+        <div class="pipeline-header">
+          <span class="section-title">Candidate Pipeline</span>
+          <a class="view-all" href="#">View all →</a>
+        </div>
+        <div class="kanban">
+          <!-- Applied -->
+          <div class="k-col">
+            <div class="k-col-header">
+              <div class="k-dot" style="background:#4da6ff;"></div>
+              <span class="k-col-title">Applied</span>
+              <span class="k-count">8</span>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Priya Mehta</div>
+              <div class="k-card-role">Product Designer</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#4a3aaa;">PM</div>
+                <span class="k-tag" style="background:rgba(77,166,255,0.12);color:#4da6ff;">New</span>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Carlos Vega</div>
+              <div class="k-card-role">Frontend Eng.</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#1a5f3a;">CV</div>
+                <span class="k-tag" style="background:rgba(77,166,255,0.12);color:#4da6ff;">New</span>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Nia Osei</div>
+              <div class="k-card-role">Data Analyst</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#7c3a1a;">NO</div>
+                <span class="k-tag" style="background:rgba(77,166,255,0.12);color:#4da6ff;">New</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Screening -->
+          <div class="k-col">
+            <div class="k-col-header">
+              <div class="k-dot" style="background:#f5a623;"></div>
+              <span class="k-col-title">Screening</span>
+              <span class="k-count">5</span>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Tom Hargreaves</div>
+              <div class="k-card-role">Backend Eng.</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#3a3a7c;">TH</div>
+                <div class="k-stars">
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#5a5578"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Lena Fischer</div>
+              <div class="k-card-role">UX Researcher</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#1a4a3a;">LF</div>
+                <div class="k-stars">
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                  <svg class="k-star" viewBox="0 0 8 8"><polygon points="4,1 5,3 7,3 5.5,4.5 6,7 4,5.5 2,7 2.5,4.5 1,3 3,3" fill="#f5a623"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interview -->
+          <div class="k-col">
+            <div class="k-col-header">
+              <div class="k-dot" style="background:#a388ff;"></div>
+              <span class="k-col-title">Interview</span>
+              <span class="k-count">4</span>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Marcus Liu</div>
+              <div class="k-card-role">DevOps Eng.</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#3a1a5a;">ML</div>
+                <span class="k-tag" style="background:var(--purple-dim);color:var(--purple-light);">Today</span>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Sara Johansson</div>
+              <div class="k-card-role">Product Mgr.</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#1a3a5a;">SJ</div>
+                <span class="k-tag" style="background:var(--purple-dim);color:var(--purple-light);">Tomorrow</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offer -->
+          <div class="k-col">
+            <div class="k-col-header">
+              <div class="k-dot" style="background:#22c97e;"></div>
+              <span class="k-col-title">Offer</span>
+              <span class="k-count">2</span>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Aiko Tanaka</div>
+              <div class="k-card-role">Sr. Designer</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#1a4a2a;">AT</div>
+                <span class="k-tag" style="background:rgba(34,201,126,0.12);color:#22c97e;">Sent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hired -->
+          <div class="k-col">
+            <div class="k-col-header">
+              <div class="k-dot" style="background:#f0526a;"></div>
+              <span class="k-col-title">Hired</span>
+              <span class="k-count">3</span>
+            </div>
+            <div class="k-card">
+              <div class="k-card-name">Ryan O'Brien</div>
+              <div class="k-card-role">Full Stack Dev</div>
+              <div class="k-card-foot">
+                <div class="k-avatar" style="background:#5a1a1a;">RO</div>
+                <span class="k-tag" style="background:rgba(240,82,106,0.12);color:#f0526a;">Onboarding</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Open Positions Table -->
+        <div style="margin-top: 24px;">
+          <div class="positions-header">
+            <span class="section-title">Open Positions</span>
+            <a class="view-all" href="#">View all →</a>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0 16px;">
+            <table class="positions-table">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Applicants</th>
+                  <th>Progress</th>
+                  <th>Posted</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="pos-title">Senior Frontend Engineer</div><div class="pos-dept">Engineering · Remote</div></td>
+                  <td><span class="status-pill pill-green">Active</span></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <div class="applicant-avatars">
+                        <div class="k-avatar" style="background:#3a3a7c;width:20px;height:20px;font-size:8px;">PM</div>
+                        <div class="k-avatar" style="background:#1a5f3a;width:20px;height:20px;font-size:8px;">CV</div>
+                        <div class="k-avatar" style="background:#5a1a1a;width:20px;height:20px;font-size:8px;">RO</div>
+                      </div>
+                      <span style="font-size:11px;color:var(--muted);">+34</span>
+                    </div>
+                  </td>
+                  <td><div class="prog-bg"><div class="prog-fill" style="width:65%;"></div></div></td>
+                  <td style="color:var(--muted);font-size:11px;">14d ago</td>
+                </tr>
+                <tr>
+                  <td><div class="pos-title">Product Designer</div><div class="pos-dept">Design · Hybrid</div></td>
+                  <td><span class="status-pill pill-purple">Review</span></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <div class="applicant-avatars">
+                        <div class="k-avatar" style="background:#1a3a5a;width:20px;height:20px;font-size:8px;">SJ</div>
+                        <div class="k-avatar" style="background:#3a1a5a;width:20px;height:20px;font-size:8px;">ML</div>
+                      </div>
+                      <span style="font-size:11px;color:var(--muted);">+19</span>
+                    </div>
+                  </td>
+                  <td><div class="prog-bg"><div class="prog-fill" style="width:40%;"></div></div></td>
+                  <td style="color:var(--muted);font-size:11px;">7d ago</td>
+                </tr>
+                <tr>
+                  <td><div class="pos-title">Data Analyst</div><div class="pos-dept">Operations · On-site</div></td>
+                  <td><span class="status-pill pill-amber">Paused</span></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <div class="applicant-avatars">
+                        <div class="k-avatar" style="background:#7c3a1a;width:20px;height:20px;font-size:8px;">NO</div>
+                      </div>
+                      <span style="font-size:11px;color:var(--muted);">+8</span>
+                    </div>
+                  </td>
+                  <td><div class="prog-bg"><div class="prog-fill" style="width:20%;background:var(--amber);"></div></div></td>
+                  <td style="color:var(--muted);font-size:11px;">21d ago</td>
+                </tr>
+                <tr>
+                  <td><div class="pos-title">DevOps Engineer</div><div class="pos-dept">Engineering · Remote</div></td>
+                  <td><span class="status-pill pill-green">Active</span></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <div class="applicant-avatars">
+                        <div class="k-avatar" style="background:#1a4a3a;width:20px;height:20px;font-size:8px;">LF</div>
+                        <div class="k-avatar" style="background:#4a3aaa;width:20px;height:20px;font-size:8px;">AT</div>
+                      </div>
+                      <span style="font-size:11px;color:var(--muted);">+11</span>
+                    </div>
+                  </td>
+                  <td><div class="prog-bg"><div class="prog-fill" style="width:55%;"></div></div></td>
+                  <td style="color:var(--muted);font-size:11px;">5d ago</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <!-- Tasks -->
+        <div class="panel-card">
+          <div class="panel-card-title">Tasks</div>
+          <div class="task-item">
+            <div class="task-check done" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+            <div class="task-text done">Review Priya Mehta's portfolio</div>
+            <div class="task-due">Done</div>
+          </div>
+          <div class="task-item">
+            <div class="task-check" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+            <div class="task-text">Schedule Marcus Liu interview</div>
+            <div class="task-due">Today</div>
+          </div>
+          <div class="task-item">
+            <div class="task-check" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+            <div class="task-text">Send offer letter to Aiko Tanaka</div>
+            <div class="task-due">Tomorrow</div>
+          </div>
+          <div class="task-item">
+            <div class="task-check" onclick="this.classList.toggle('done');this.nextElementSibling.classList.toggle('done')"></div>
+            <div class="task-text">Update DevOps job description</div>
+            <div class="task-due">Apr 9</div>
+          </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="panel-card">
+          <div class="panel-card-title">Recent Activity</div>
+          <div class="activity-item">
+            <div class="act-dot" style="background:var(--green);"></div>
+            <div class="act-text"><strong>Ryan O'Brien</strong> accepted offer for Full Stack Dev</div>
+            <div class="act-time">2h ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot" style="background:var(--purple);"></div>
+            <div class="act-text"><strong>Marcus Liu</strong> moved to Interview stage</div>
+            <div class="act-time">4h ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot" style="background:var(--blue);"></div>
+            <div class="act-text"><strong>Carlos Vega</strong> applied for Frontend Engineer</div>
+            <div class="act-time">6h ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot" style="background:var(--amber);"></div>
+            <div class="act-text"><strong>Data Analyst</strong> position paused by admin</div>
+            <div class="act-time">Yesterday</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot" style="background:var(--green);"></div>
+            <div class="act-text"><strong>Lena Fischer</strong> rated 4 stars in screening</div>
+            <div class="act-time">Yesterday</div>
+          </div>
+        </div>
+
+        <!-- Upcoming interviews -->
+        <div class="panel-card">
+          <div class="panel-card-title">Upcoming Interviews</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border-radius:8px;">
+              <div style="width:36px;height:36px;background:var(--purple-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="#a388ff" stroke-width="1.5"/><path d="M5 2v2M11 2v2M2 7h12" stroke="#a388ff" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;color:var(--text);">Marcus Liu</div>
+                <div style="font-size:11px;color:var(--muted);">Today, 2:00 PM · Video</div>
+              </div>
+              <span class="status-pill pill-purple">Now</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border-radius:8px;">
+              <div style="width:36px;height:36px;background:var(--purple-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="#a388ff" stroke-width="1.5"/><path d="M5 2v2M11 2v2M2 7h12" stroke="#a388ff" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;color:var(--text);">Sara Johansson</div>
+                <div style="font-size:11px;color:var(--muted);">Tomorrow, 10:30 AM · Phone</div>
+              </div>
+              <span class="status-pill" style="background:rgba(77,166,255,0.1);color:#4da6ff;">Soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
