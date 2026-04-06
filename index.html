@@ -1,196 +1,166 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>HireFlow — ATS Dashboard</title>
-
-<style>
-body { font-family: Arial; background:#0d0d14; color:white; display:flex; height:100vh; margin:0;}
-.sidebar { width:200px; background:#13131f; padding:10px;}
-.nav-item { padding:10px; cursor:pointer; color:#888;}
-.nav-item.active { color:white; background:#7c5cfc;}
-.main { flex:1; display:flex; flex-direction:column;}
-.topbar { padding:10px; background:#13131f; display:flex; justify-content:space-between;}
-.content { padding:20px; overflow:auto;}
-.kanban { display:flex; gap:10px;}
-.k-col { background:#1a1a2b; padding:10px; width:200px;}
-.k-card { background:#222; padding:8px; margin:5px 0; cursor:grab;}
-.k-count { font-size:12px; color:#aaa;}
-</style>
-</head>
-
-<body>
-
-<div class="sidebar">
-  <div class="nav-item active">Dashboard</div>
-  <div class="nav-item">Positions</div>
-  <div class="nav-item">Candidates</div>
-</div>
-
-<div class="main">
-  <div class="topbar">
-    <span class="topbar-title">Dashboard</span>
-    <button id="addBtn">+ Add Candidate</button>
-  </div>
-
-  <div class="content">
-    <input id="search" placeholder="Search..." style="margin-bottom:10px; padding:5px;"/>
-
-    <div class="kanban">
-
-      <div class="k-col" data-stage="applied">
-        <b>Applied (<span class="k-count">0</span>)</b>
-      </div>
-
-      <div class="k-col" data-stage="screening">
-        <b>Screening (<span class="k-count">0</span>)</b>
-      </div>
-
-      <div class="k-col" data-stage="interview">
-        <b>Interview (<span class="k-count">0</span>)</b>
-      </div>
-
-      <div class="k-col" data-stage="offer">
-        <b>Offer (<span class="k-count">0</span>)</b>
-      </div>
-
-      <div class="k-col" data-stage="hired">
-        <b>Hired (<span class="k-count">0</span>)</b>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <script>
-const STORAGE_KEY = "hireflow_data";
+document.addEventListener("DOMContentLoaded", () => {
 
-// LOAD
-function load() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-}
+  const STORAGE_KEY = "hireflow_full";
 
-// SAVE
-function save(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
+  // --------------------
+  // SIDEBAR NAVIGATION
+  // --------------------
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", function(e) {
+      e.preventDefault();
 
-// CREATE CARD
-function createCard(name, role) {
-  const div = document.createElement("div");
-  div.className = "k-card";
-  div.innerHTML = "<b>"+name+"</b><br>"+role;
-  return div;
-}
+      document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+      this.classList.add("active");
 
-// RENDER
-function render() {
-  const data = load();
-
-  document.querySelectorAll(".k-col").forEach(col => {
-    const stage = col.dataset.stage;
-    col.querySelectorAll(".k-card").forEach(c => c.remove());
-
-    (data[stage] || []).forEach(item => {
-      const card = createCard(item.name, item.role);
-      col.appendChild(card);
+      const text = this.textContent.trim();
+      document.querySelector(".topbar-title").textContent = text;
     });
   });
 
-  attachEvents();
+  // --------------------
+  // TASK TOGGLE (NO INLINE JS)
+  // --------------------
+  document.querySelectorAll(".task-item").forEach(item => {
+    const check = item.querySelector(".task-check");
+    const text = item.querySelector(".task-text");
+
+    check.addEventListener("click", () => {
+      check.classList.toggle("done");
+      text.classList.toggle("done");
+    });
+  });
+
+  // --------------------
+  // SEARCH
+  // --------------------
+  const search = document.querySelector(".search-input");
+  if (search) {
+    search.addEventListener("input", function() {
+      const val = this.value.toLowerCase();
+
+      document.querySelectorAll(".k-card").forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(val) ? "block" : "none";
+      });
+    });
+  }
+
+  // --------------------
+  // DRAG & DROP
+  // --------------------
+  let dragged = null;
+
+  function attachDrag() {
+    document.querySelectorAll(".k-card").forEach(card => {
+      card.setAttribute("draggable", true);
+
+      card.addEventListener("dragstart", () => {
+        dragged = card;
+        setTimeout(() => card.style.opacity = "0.5", 0);
+      });
+
+      card.addEventListener("dragend", () => {
+        dragged = null;
+        card.style.opacity = "1";
+        saveState();
+      });
+    });
+  }
+
+  document.querySelectorAll(".k-col").forEach(col => {
+    col.addEventListener("dragover", e => e.preventDefault());
+
+    col.addEventListener("drop", () => {
+      if (dragged) {
+        col.appendChild(dragged);
+        updateCounts();
+        saveState();
+      }
+    });
+  });
+
+  // --------------------
+  // UPDATE COUNTS
+  // --------------------
+  function updateCounts() {
+    document.querySelectorAll(".k-col").forEach(col => {
+      const count = col.querySelectorAll(".k-card").length;
+      const counter = col.querySelector(".k-count");
+      if (counter) counter.textContent = count;
+    });
+  }
+
+  // --------------------
+  // SAVE STATE
+  // --------------------
+  function saveState() {
+    const data = {};
+
+    document.querySelectorAll(".k-col").forEach(col => {
+      const stage = col.querySelector(".k-col-title").textContent;
+      data[stage] = [];
+
+      col.querySelectorAll(".k-card").forEach(card => {
+        data[stage].push(card.innerHTML);
+      });
+    });
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // --------------------
+  // LOAD STATE
+  // --------------------
+  function loadState() {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!data) return;
+
+    document.querySelectorAll(".k-col").forEach(col => {
+      const stage = col.querySelector(".k-col-title").textContent;
+
+      col.querySelectorAll(".k-card").forEach(c => c.remove());
+
+      (data[stage] || []).forEach(html => {
+        const div = document.createElement("div");
+        div.className = "k-card";
+        div.innerHTML = html;
+        col.appendChild(div);
+      });
+    });
+  }
+
+  // --------------------
+  // ADD NEW CANDIDATE
+  // --------------------
+  document.querySelector(".topbar-btn")?.addEventListener("click", () => {
+    const name = prompt("Candidate name:");
+    const role = prompt("Role:");
+
+    if (!name || !role) return;
+
+    const firstCol = document.querySelector(".k-col");
+
+    const card = document.createElement("div");
+    card.className = "k-card";
+    card.innerHTML = `
+      <div class="k-card-name">${name}</div>
+      <div class="k-card-role">${role}</div>
+    `;
+
+    firstCol.appendChild(card);
+
+    attachDrag();
+    updateCounts();
+    saveState();
+  });
+
+  // --------------------
+  // INIT
+  // --------------------
+  loadState();
+  attachDrag();
   updateCounts();
-}
 
-// SAVE CURRENT STATE
-function saveState() {
-  const data = {};
-
-  document.querySelectorAll(".k-col").forEach(col => {
-    const stage = col.dataset.stage;
-    data[stage] = [];
-
-    col.querySelectorAll(".k-card").forEach(card => {
-      const text = card.innerText.split("\n");
-      data[stage].push({ name: text[0], role: text[1] });
-    });
-  });
-
-  save(data);
-}
-
-// DRAG
-let dragged = null;
-
-function attachEvents() {
-  document.querySelectorAll(".k-card").forEach(card => {
-    card.draggable = true;
-
-    card.ondragstart = () => dragged = card;
-    card.ondragend = () => {
-      dragged = null;
-      saveState();
-    };
-  });
-}
-
-document.querySelectorAll(".k-col").forEach(col => {
-  col.ondragover = e => e.preventDefault();
-
-  col.ondrop = () => {
-    if (dragged) {
-      col.appendChild(dragged);
-      updateCounts();
-      saveState();
-    }
-  };
 });
-
-// COUNTS
-function updateCounts() {
-  document.querySelectorAll(".k-col").forEach(col => {
-    col.querySelector(".k-count").innerText =
-      col.querySelectorAll(".k-card").length;
-  });
-}
-
-// ADD
-document.getElementById("addBtn").onclick = () => {
-  const name = prompt("Name:");
-  const role = prompt("Role:");
-
-  if (!name || !role) return;
-
-  const data = load();
-  data.applied = data.applied || [];
-  data.applied.push({ name, role });
-
-  save(data);
-  render();
-};
-
-// SEARCH
-document.getElementById("search").oninput = function() {
-  const val = this.value.toLowerCase();
-
-  document.querySelectorAll(".k-card").forEach(card => {
-    card.style.display =
-      card.innerText.toLowerCase().includes(val) ? "block" : "none";
-  });
-};
-
-// SIDEBAR
-document.querySelectorAll(".nav-item").forEach(item => {
-  item.onclick = function() {
-    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
-    this.classList.add("active");
-    document.querySelector(".topbar-title").innerText = this.innerText;
-  };
-});
-
-// INIT
-render();
 </script>
-
-</body>
-</html>
